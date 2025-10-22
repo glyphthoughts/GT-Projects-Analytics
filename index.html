@@ -67,6 +67,86 @@
             letter-spacing: 4px;
         }
 
+        .back-button {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid #888888;
+            color: #ffffff;
+            font-family: 'VT323', monospace;
+            font-size: 1.5rem;
+            padding: 10px 20px;
+            cursor: pointer;
+            margin-bottom: 20px;
+            letter-spacing: 2px;
+        }
+
+        .back-button:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .category-filters {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .filter-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .filter-item input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        .filter-item label {
+            font-size: 1.5rem;
+            color: #ffffff;
+            letter-spacing: 2px;
+            cursor: pointer;
+        }
+
+        .quick-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid #888888;
+            color: #ffffff;
+            font-family: 'VT323', monospace;
+            font-size: 1.3rem;
+            padding: 8px 16px;
+            cursor: pointer;
+            letter-spacing: 2px;
+        }
+
+        .btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .btn.active {
+            background: rgba(255, 255, 255, 0.3);
+            border-color: #ffffff;
+        }
+
+        .timeline-toggle {
+            display: flex;
+            gap: 10px;
+        }
+
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -95,6 +175,12 @@
             letter-spacing: 2px;
         }
 
+        .stat-sublabel {
+            font-size: 1.2rem;
+            color: #666666;
+            margin-top: 5px;
+        }
+
         .chart-container {
             background: rgba(255, 255, 255, 0.05);
             border: 2px solid #888888;
@@ -103,11 +189,23 @@
             margin-bottom: 30px;
         }
 
+        .chart-container.hidden {
+            display: none;
+        }
+
         .chart-title {
             font-size: 2rem;
             margin-bottom: 20px;
             color: #ffffff;
             letter-spacing: 3px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .peak-indicator {
+            font-size: 1.3rem;
+            color: #888888;
         }
 
         canvas {
@@ -144,31 +242,68 @@
             }
         }
 
-        .project-list {
+        .project-breakdown {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             gap: 15px;
-            margin-bottom: 40px;
+            margin-top: 20px;
         }
 
         .project-item {
             background: rgba(255, 255, 255, 0.05);
             border: 2px solid #888888;
-            padding: 20px;
+            padding: 15px 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .project-item:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: #ffffff;
         }
 
         .project-name {
-            font-size: 1.8rem;
+            font-size: 1.5rem;
             color: #ffffff;
             letter-spacing: 2px;
         }
 
+        .project-stats {
+            text-align: right;
+        }
+
         .project-visits {
-            font-size: 2rem;
+            font-size: 1.8rem;
             color: #888888;
+        }
+
+        .project-percent {
+            font-size: 1.2rem;
+            color: #666666;
+        }
+
+        .category-header {
+            font-size: 1.8rem;
+            color: #888888;
+            margin-bottom: 10px;
+            letter-spacing: 2px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #444444;
+        }
+
+        #detailView {
+            display: none;
+        }
+
+        #detailView.active {
+            display: block;
+        }
+
+        #overviewView.hidden {
+            display: none;
         }
     </style>
 </head>
@@ -190,7 +325,35 @@
 
         <div class="loading" id="loading">LOADING DATA</div>
 
-        <div id="dashboard" style="display: none;">
+        <!-- Overview View -->
+        <div id="overviewView" style="display: none;">
+            <div class="controls">
+                <div class="category-filters">
+                    <div class="filter-item">
+                        <input type="checkbox" id="filterProjects" checked>
+                        <label for="filterProjects">GT PROJECTS</label>
+                    </div>
+                    <div class="filter-item">
+                        <input type="checkbox" id="filterTools" checked>
+                        <label for="filterTools">GLYPH TOOLS</label>
+                    </div>
+                    <div class="filter-item">
+                        <input type="checkbox" id="filterApparatus" checked>
+                        <label for="filterApparatus">THE APPARATUS</label>
+                    </div>
+                </div>
+
+                <div class="quick-buttons">
+                    <button class="btn" id="btnAll">ALL</button>
+                    <button class="btn" id="btnNone">NONE</button>
+                </div>
+
+                <div class="timeline-toggle">
+                    <button class="btn active" id="btn7Days">7 DAYS</button>
+                    <button class="btn" id="btn30Days">30 DAYS</button>
+                </div>
+            </div>
+
             <div class="stats-grid">
                 <div class="stat-card">
                     <div class="stat-number" id="totalVisits">0</div>
@@ -201,8 +364,8 @@
                     <div class="stat-label">TODAY'S VISITS</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-number" id="projectCount">0</div>
-                    <div class="stat-label">PROJECTS TRACKED</div>
+                    <div class="stat-number" id="categoriesTracked">0</div>
+                    <div class="stat-label">CATEGORIES ACTIVE</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-number" id="avgDaily">0</div>
@@ -210,19 +373,69 @@
                 </div>
             </div>
 
-            <div class="chart-container">
-                <div class="chart-title">PROJECT BREAKDOWN</div>
-                <div class="project-list" id="projectList"></div>
+            <!-- GT Projects Chart -->
+            <div class="chart-container" id="projectsChart">
+                <div class="chart-title">
+                    <span>GT PROJECTS</span>
+                    <span class="peak-indicator" id="projectsPeak"></span>
+                </div>
+                <canvas id="projectsCanvas"></canvas>
+                <div class="category-header">PROJECT BREAKDOWN</div>
+                <div class="project-breakdown" id="projectsBreakdown"></div>
+            </div>
+
+            <!-- Glyph Tools Chart -->
+            <div class="chart-container" id="toolsChart">
+                <div class="chart-title">
+                    <span>GLYPH TOOLS</span>
+                    <span class="peak-indicator" id="toolsPeak"></span>
+                </div>
+                <canvas id="toolsCanvas"></canvas>
+                <div class="category-header">TOOLS BREAKDOWN</div>
+                <div class="project-breakdown" id="toolsBreakdown"></div>
+            </div>
+
+            <!-- The Apparatus Chart -->
+            <div class="chart-container" id="apparatusChart">
+                <div class="chart-title">
+                    <span>THE APPARATUS</span>
+                    <span class="peak-indicator" id="apparatusPeak"></span>
+                </div>
+                <canvas id="apparatusCanvas"></canvas>
+                <div class="category-header">APPARATUS BREAKDOWN</div>
+                <div class="project-breakdown" id="apparatusBreakdown"></div>
+            </div>
+        </div>
+
+        <!-- Detail View -->
+        <div id="detailView">
+            <button class="back-button" id="backButton">← BACK TO OVERVIEW</button>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number" id="detailTotal">0</div>
+                    <div class="stat-label">TOTAL VISITS</div>
+                    <div class="stat-sublabel" id="detailProjectName"></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="detailToday">0</div>
+                    <div class="stat-label">TODAY'S VISITS</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="detailAvg">0</div>
+                    <div class="stat-label">AVG DAILY</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="detailPeak">0</div>
+                    <div class="stat-label">PEAK DAY</div>
+                </div>
             </div>
 
             <div class="chart-container">
-                <div class="chart-title">VISITS BY PROJECT</div>
-                <canvas id="projectChart"></canvas>
-            </div>
-
-            <div class="chart-container">
-                <div class="chart-title">VISITS OVER TIME (LAST 7 DAYS)</div>
-                <canvas id="timelineChart"></canvas>
+                <div class="chart-title">
+                    <span id="detailChartTitle">PROJECT DETAILS</span>
+                </div>
+                <canvas id="detailCanvas"></canvas>
             </div>
         </div>
     </div>
@@ -246,41 +459,102 @@
         const app = initializeApp(firebaseConfig);
         const database = getDatabase(app);
 
+        // Project categorization
+        const categories = {
+            'GT Projects': ['Marcus Omega', 'Spawn a Thought', 'Orbis Philosophorum', 'The Constellation', 'Quiz: Practical Wisdom'],
+            'Glyph Tools': ['Glyph Tools'],
+            'The Apparatus': ['The Apparatus']
+        };
+
+        const categoryColors = {
+            'GT Projects': '#FF0000',
+            'Glyph Tools': '#0000FF',
+            'The Apparatus': '#00FF00'
+        };
+
+        let allData = {};
+        let currentTimeline = 7;
+        let chartInstances = {};
+
+        // Listen for data
         const visitsRef = ref(database, 'visits');
         onValue(visitsRef, (snapshot) => {
-            const data = snapshot.val();
-            if (data) {
-                processAnalytics(data);
-            } else {
-                document.getElementById('loading').style.display = 'none';
-                document.getElementById('dashboard').style.display = 'block';
-            }
+            allData = snapshot.val() || {};
+            renderOverview();
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('overviewView').style.display = 'block';
         });
 
-        function processAnalytics(data) {
+        // Controls
+        document.getElementById('filterProjects').addEventListener('change', renderOverview);
+        document.getElementById('filterTools').addEventListener('change', renderOverview);
+        document.getElementById('filterApparatus').addEventListener('change', renderOverview);
+
+        document.getElementById('btnAll').addEventListener('click', () => {
+            document.getElementById('filterProjects').checked = true;
+            document.getElementById('filterTools').checked = true;
+            document.getElementById('filterApparatus').checked = true;
+            renderOverview();
+        });
+
+        document.getElementById('btnNone').addEventListener('click', () => {
+            document.getElementById('filterProjects').checked = false;
+            document.getElementById('filterTools').checked = false;
+            document.getElementById('filterApparatus').checked = false;
+            renderOverview();
+        });
+
+        document.getElementById('btn7Days').addEventListener('click', () => {
+            currentTimeline = 7;
+            document.getElementById('btn7Days').classList.add('active');
+            document.getElementById('btn30Days').classList.remove('active');
+            renderOverview();
+        });
+
+        document.getElementById('btn30Days').addEventListener('click', () => {
+            currentTimeline = 30;
+            document.getElementById('btn30Days').classList.add('active');
+            document.getElementById('btn7Days').classList.remove('active');
+            renderOverview();
+        });
+
+        document.getElementById('backButton').addEventListener('click', () => {
+            document.getElementById('detailView').classList.remove('active');
+            document.getElementById('overviewView').classList.remove('hidden');
+        });
+
+        function renderOverview() {
+            const showProjects = document.getElementById('filterProjects').checked;
+            const showTools = document.getElementById('filterTools').checked;
+            const showApparatus = document.getElementById('filterApparatus').checked;
+
+            // Show/hide charts
+            document.getElementById('projectsChart').classList.toggle('hidden', !showProjects);
+            document.getElementById('toolsChart').classList.toggle('hidden', !showTools);
+            document.getElementById('apparatusChart').classList.toggle('hidden', !showApparatus);
+
+            // Calculate overall stats
             let totalVisits = 0;
             let todayVisits = 0;
-            const projectVisits = {};
             const dailyVisits = {};
-
             const today = new Date().toDateString();
 
-            Object.keys(data).forEach(projectName => {
-                projectVisits[projectName] = 0;
+            const activeCategories = [];
+            if (showProjects) activeCategories.push('GT Projects');
+            if (showTools) activeCategories.push('Glyph Tools');
+            if (showApparatus) activeCategories.push('The Apparatus');
 
-                Object.values(data[projectName]).forEach(visit => {
-                    totalVisits++;
-                    projectVisits[projectName]++;
-
-                    const visitDate = new Date(visit.timestamp).toDateString();
-                    if (visitDate === today) {
-                        todayVisits++;
+            activeCategories.forEach(category => {
+                categories[category].forEach(projectName => {
+                    if (allData[projectName]) {
+                        Object.values(allData[projectName]).forEach(visit => {
+                            totalVisits++;
+                            const visitDate = new Date(visit.timestamp).toDateString();
+                            if (visitDate === today) todayVisits++;
+                            if (!dailyVisits[visitDate]) dailyVisits[visitDate] = 0;
+                            dailyVisits[visitDate]++;
+                        });
                     }
-
-                    if (!dailyVisits[visitDate]) {
-                        dailyVisits[visitDate] = 0;
-                    }
-                    dailyVisits[visitDate]++;
                 });
             });
 
@@ -289,51 +563,66 @@
 
             document.getElementById('totalVisits').textContent = totalVisits;
             document.getElementById('todayVisits').textContent = todayVisits;
-            document.getElementById('projectCount').textContent = Object.keys(data).length;
+            document.getElementById('categoriesTracked').textContent = activeCategories.length;
             document.getElementById('avgDaily').textContent = avgDaily;
 
-            createProjectList(projectVisits);
-            createProjectChart(projectVisits);
-            createTimelineChart(dailyVisits);
-
-            document.getElementById('loading').style.display = 'none';
-            document.getElementById('dashboard').style.display = 'block';
+            // Render each category chart
+            if (showProjects) renderCategoryChart('GT Projects', 'projectsCanvas', 'projectsBreakdown', 'projectsPeak');
+            if (showTools) renderCategoryChart('Glyph Tools', 'toolsCanvas', 'toolsBreakdown', 'toolsPeak');
+            if (showApparatus) renderCategoryChart('The Apparatus', 'apparatusCanvas', 'apparatusBreakdown', 'apparatusPeak');
         }
 
-        function createProjectList(projectVisits) {
-            const container = document.getElementById('projectList');
-            container.innerHTML = '';
+        function renderCategoryChart(category, canvasId, breakdownId, peakId) {
+            const projects = categories[category];
+            const dailyVisits = {};
+            const projectVisits = {};
+            let totalCategoryVisits = 0;
 
-            Object.entries(projectVisits)
-                .sort((a, b) => b[1] - a[1])
-                .forEach(([name, visits]) => {
-                    const item = document.createElement('div');
-                    item.className = 'project-item';
-                    item.innerHTML = `
-                        <span class="project-name">${name}</span>
-                        <span class="project-visits">${visits}</span>
-                    `;
-                    container.appendChild(item);
-                });
-        }
+            projects.forEach(projectName => {
+                projectVisits[projectName] = 0;
+                if (allData[projectName]) {
+                    Object.values(allData[projectName]).forEach(visit => {
+                        projectVisits[projectName]++;
+                        totalCategoryVisits++;
+                        const visitDate = new Date(visit.timestamp).toDateString();
+                        if (!dailyVisits[visitDate]) dailyVisits[visitDate] = 0;
+                        dailyVisits[visitDate]++;
+                    });
+                }
+            });
 
-        function createProjectChart(projectVisits) {
-            const ctx = document.getElementById('projectChart');
+            // Get timeline data
+            const sortedDates = Object.keys(dailyVisits).sort((a, b) => new Date(a) - new Date(b));
+            const timelineDates = sortedDates.slice(-currentTimeline);
+            const counts = timelineDates.map(day => dailyVisits[day]);
 
-            if (window.projectChartInstance) {
-                window.projectChartInstance.destroy();
-            }
+            // Find peak
+            const maxVisits = Math.max(...counts);
+            const peakDate = timelineDates[counts.indexOf(maxVisits)];
+            document.getElementById(peakId).textContent = peakDate ? `PEAK: ${new Date(peakDate).toLocaleDateString()} (${maxVisits})` : '';
 
-            window.projectChartInstance = new Chart(ctx, {
-                type: 'bar',
+            // Render chart
+            const ctx = document.getElementById(canvasId);
+            if (chartInstances[canvasId]) chartInstances[canvasId].destroy();
+
+            chartInstances[canvasId] = new Chart(ctx, {
+                type: 'line',
                 data: {
-                    labels: Object.keys(projectVisits),
+                    labels: timelineDates.map(date => {
+                        const d = new Date(date);
+                        return `${d.getMonth() + 1}/${d.getDate()}`;
+                    }),
                     datasets: [{
-                        label: 'VISITS',
-                        data: Object.values(projectVisits),
-                        backgroundColor: 'rgba(255, 255, 255, 0.3)',
-                        borderColor: '#888888',
-                        borderWidth: 2
+                        label: category.toUpperCase(),
+                        data: counts,
+                        borderColor: categoryColors[category],
+                        backgroundColor: categoryColors[category] + '33',
+                        fill: true,
+                        tension: 0.4,
+                        borderWidth: 3,
+                        pointBackgroundColor: categoryColors[category],
+                        pointBorderColor: '#ffffff',
+                        pointRadius: 6
                     }]
                 },
                 options: {
@@ -344,20 +633,14 @@
                             beginAtZero: true,
                             ticks: {
                                 color: '#888888',
-                                font: {
-                                    family: 'VT323',
-                                    size: 16
-                                }
+                                font: { family: 'VT323', size: 16 }
                             },
                             grid: { color: 'rgba(255, 255, 255, 0.1)' }
                         },
                         x: {
                             ticks: {
                                 color: '#888888',
-                                font: {
-                                    family: 'VT323',
-                                    size: 16
-                                }
+                                font: { family: 'VT323', size: 16 }
                             },
                             grid: { color: 'rgba(255, 255, 255, 0.1)' }
                         }
@@ -366,46 +649,105 @@
                         legend: {
                             labels: {
                                 color: '#ffffff',
-                                font: {
-                                    family: 'VT323',
-                                    size: 18
-                                }
+                                font: { family: 'VT323', size: 18 }
                             }
                         }
                     }
                 }
             });
+
+            // Render breakdown
+            const breakdown = document.getElementById(breakdownId);
+            breakdown.innerHTML = '';
+
+            Object.entries(projectVisits)
+                .sort((a, b) => b[1] - a[1])
+                .forEach(([name, visits]) => {
+                    const percent = totalCategoryVisits > 0 ? ((visits / totalCategoryVisits) * 100).toFixed(1) : 0;
+                    const item = document.createElement('div');
+                    item.className = 'project-item';
+                    item.innerHTML = `
+                        <span class="project-name">${name}</span>
+                        <div class="project-stats">
+                            <div class="project-visits">${visits}</div>
+                            <div class="project-percent">${percent}%</div>
+                        </div>
+                    `;
+                    item.addEventListener('click', () => showProjectDetail(name));
+                    breakdown.appendChild(item);
+                });
         }
 
-        function createTimelineChart(dailyVisits) {
-            const sortedDates = Object.keys(dailyVisits).sort((a, b) => new Date(a) - new Date(b));
-            const last7Days = sortedDates.slice(-7);
-            const counts = last7Days.map(day => dailyVisits[day]);
+        function showProjectDetail(projectName) {
+            document.getElementById('overviewView').classList.add('hidden');
+            document.getElementById('detailView').classList.add('active');
+            document.getElementById('detailProjectName').textContent = projectName;
+            document.getElementById('detailChartTitle').textContent = projectName.toUpperCase();
 
-            const ctx = document.getElementById('timelineChart');
-
-            if (window.timelineChartInstance) {
-                window.timelineChartInstance.destroy();
+            if (!allData[projectName]) {
+                document.getElementById('detailTotal').textContent = 0;
+                document.getElementById('detailToday').textContent = 0;
+                document.getElementById('detailAvg').textContent = 0;
+                document.getElementById('detailPeak').textContent = 0;
+                return;
             }
 
-            window.timelineChartInstance = new Chart(ctx, {
+            const dailyVisits = {};
+            let totalVisits = 0;
+            let todayVisits = 0;
+            const today = new Date().toDateString();
+
+            Object.values(allData[projectName]).forEach(visit => {
+                totalVisits++;
+                const visitDate = new Date(visit.timestamp).toDateString();
+                if (visitDate === today) todayVisits++;
+                if (!dailyVisits[visitDate]) dailyVisits[visitDate] = 0;
+                dailyVisits[visitDate]++;
+            });
+
+            const sortedDates = Object.keys(dailyVisits).sort((a, b) => new Date(a) - new Date(b));
+            const timelineDates = sortedDates.slice(-currentTimeline);
+            const counts = timelineDates.map(day => dailyVisits[day]);
+
+            const days = Object.keys(dailyVisits).length || 1;
+            const avgDaily = Math.round(totalVisits / days);
+            const peakVisits = Math.max(...counts);
+
+            document.getElementById('detailTotal').textContent = totalVisits;
+            document.getElementById('detailToday').textContent = todayVisits;
+            document.getElementById('detailAvg').textContent = avgDaily;
+            document.getElementById('detailPeak').textContent = peakVisits;
+
+            // Find category for color
+            let projectColor = '#ffffff';
+            for (let [category, projects] of Object.entries(categories)) {
+                if (projects.includes(projectName)) {
+                    projectColor = categoryColors[category];
+                    break;
+                }
+            }
+
+            const ctx = document.getElementById('detailCanvas');
+            if (chartInstances['detailCanvas']) chartInstances['detailCanvas'].destroy();
+
+            chartInstances['detailCanvas'] = new Chart(ctx, {
                 type: 'line',
                 data: {
-                    labels: last7Days.map(date => {
+                    labels: timelineDates.map(date => {
                         const d = new Date(date);
                         return `${d.getMonth() + 1}/${d.getDate()}`;
                     }),
                     datasets: [{
                         label: 'DAILY VISITS',
                         data: counts,
-                        borderColor: '#ffffff',
-                        backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                        borderColor: projectColor,
+                        backgroundColor: projectColor + '33',
                         fill: true,
                         tension: 0.4,
-                        borderWidth: 2,
-                        pointBackgroundColor: '#ffffff',
-                        pointBorderColor: '#888888',
-                        pointRadius: 5
+                        borderWidth: 3,
+                        pointBackgroundColor: projectColor,
+                        pointBorderColor: '#ffffff',
+                        pointRadius: 6
                     }]
                 },
                 options: {
@@ -416,20 +758,14 @@
                             beginAtZero: true,
                             ticks: {
                                 color: '#888888',
-                                font: {
-                                    family: 'VT323',
-                                    size: 16
-                                }
+                                font: { family: 'VT323', size: 16 }
                             },
                             grid: { color: 'rgba(255, 255, 255, 0.1)' }
                         },
                         x: {
                             ticks: {
                                 color: '#888888',
-                                font: {
-                                    family: 'VT323',
-                                    size: 16
-                                }
+                                font: { family: 'VT323', size: 16 }
                             },
                             grid: { color: 'rgba(255, 255, 255, 0.1)' }
                         }
@@ -438,10 +774,7 @@
                         legend: {
                             labels: {
                                 color: '#ffffff',
-                                font: {
-                                    family: 'VT323',
-                                    size: 18
-                                }
+                                font: { family: 'VT323', size: 18 }
                             }
                         }
                     }
