@@ -459,7 +459,7 @@
         const app = initializeApp(firebaseConfig);
         const database = getDatabase(app);
 
-        // Category detection - automatic based on project name prefix
+        // Category detection - automatic based on project name prefix (with dash separator)
         const categoryColors = {
             'projects': '#FF0000',
             'tools': '#0000FF',
@@ -485,7 +485,7 @@
             document.getElementById('overviewView').style.display = 'block';
         });
 
-        // Automatically categorize projects based on prefix
+        // Automatically categorize projects based on prefix (using dash as separator)
         function categorizeProjects() {
             const categorized = {
                 'projects': {},
@@ -494,8 +494,10 @@
             };
 
             Object.keys(allData).forEach(projectKey => {
-                const prefix = projectKey.split('/')[0];
-                const projectName = projectKey.split('/')[1] || projectKey;
+                // Split by dash: "projects-Spawn a Thought" becomes ["projects", "Spawn a Thought"]
+                const parts = projectKey.split('-');
+                const prefix = parts[0];
+                const projectName = parts.slice(1).join('-'); // Rejoin in case project name has dashes
 
                 if (categorized[prefix]) {
                     categorized[prefix][projectKey] = projectName;
@@ -655,7 +657,8 @@
                             beginAtZero: true,
                             ticks: {
                                 color: '#888888',
-                                font: { family: 'VT323', size: 16 }
+                                font: { family: 'VT323', size: 16 },
+                                stepSize: 1
                             },
                             grid: { color: 'rgba(255, 255, 255, 0.1)' }
                         },
@@ -773,7 +776,8 @@
                             beginAtZero: true,
                             ticks: {
                                 color: '#888888',
-                                font: { family: 'VT323', size: 16 }
+                                font: { family: 'VT323', size: 16 },
+                                stepSize: 1
                             },
                             grid: { color: 'rgba(255, 255, 255, 0.1)' }
                         },
