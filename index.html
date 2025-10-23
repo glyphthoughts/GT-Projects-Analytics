@@ -459,17 +459,17 @@
         const app = initializeApp(firebaseConfig);
         const database = getDatabase(app);
 
-        // Project categorization
-        const categories = {
-            'GT Projects': ['Marcus Omega', 'Spawn a Thought', 'Orbis Philosophorum', 'The Constellation', 'Quiz: Practical Wisdom'],
-            'Glyph Tools': ['Glyph Tools'],
-            'The Apparatus': ['The Apparatus']
+        // Category detection - automatic based on project name prefix
+        const categoryColors = {
+            'projects': '#FF0000',
+            'tools': '#0000FF',
+            'apparatus': '#00FF00'
         };
 
-        const categoryColors = {
-            'GT Projects': '#FF0000',
-            'Glyph Tools': '#0000FF',
-            'The Apparatus': '#00FF00'
+        const categoryNames = {
+            'projects': 'GT Projects',
+            'tools': 'Glyph Tools',
+            'apparatus': 'The Apparatus'
         };
 
         let allData = {};
@@ -484,6 +484,26 @@
             document.getElementById('loading').style.display = 'none';
             document.getElementById('overviewView').style.display = 'block';
         });
+
+        // Automatically categorize projects based on prefix
+        function categorizeProjects() {
+            const categorized = {
+                'projects': {},
+                'tools': {},
+                'apparatus': {}
+            };
+
+            Object.keys(allData).forEach(projectKey => {
+                const prefix = projectKey.split('/')[0];
+                const projectName = projectKey.split('/')[1] || projectKey;
+
+                if (categorized[prefix]) {
+                    categorized[prefix][projectKey] = projectName;
+                }
+            });
+
+            return categorized;
+        }
 
         // Controls
         document.getElementById('filterProjects').addEventListener('change', renderOverview);
@@ -533,6 +553,8 @@
             document.getElementById('toolsChart').classList.toggle('hidden', !showTools);
             document.getElementById('apparatusChart').classList.toggle('hidden', !showApparatus);
 
+            const categorized = categorizeProjects();
+
             // Calculate overall stats
             let totalVisits = 0;
             let todayVisits = 0;
@@ -540,14 +562,14 @@
             const today = new Date().toDateString();
 
             const activeCategories = [];
-            if (showProjects) activeCategories.push('GT Projects');
-            if (showTools) activeCategories.push('Glyph Tools');
-            if (showApparatus) activeCategories.push('The Apparatus');
+            if (showProjects) activeCategories.push('projects');
+            if (showTools) activeCategories.push('tools');
+            if (showApparatus) activeCategories.push('apparatus');
 
             activeCategories.forEach(category => {
-                categories[category].forEach(projectName => {
-                    if (allData[projectName]) {
-                        Object.values(allData[projectName]).forEach(visit => {
+                Object.keys(categorized[category]).forEach(projectKey => {
+                    if (allData[projectKey]) {
+                        Object.values(allData[projectKey]).forEach(visit => {
                             totalVisits++;
                             const visitDate = new Date(visit.timestamp).toDateString();
                             if (visitDate === today) todayVisits++;
@@ -567,22 +589,22 @@
             document.getElementById('avgDaily').textContent = avgDaily;
 
             // Render each category chart
-            if (showProjects) renderCategoryChart('GT Projects', 'projectsCanvas', 'projectsBreakdown', 'projectsPeak');
-            if (showTools) renderCategoryChart('Glyph Tools', 'toolsCanvas', 'toolsBreakdown', 'toolsPeak');
-            if (showApparatus) renderCategoryChart('The Apparatus', 'apparatusCanvas', 'apparatusBreakdown', 'apparatusPeak');
+            if (showProjects) renderCategoryChart('projects', categorized, 'projectsCanvas', 'projectsBreakdown', 'projectsPeak');
+            if (showTools) renderCategoryChart('tools', categorized, 'toolsCanvas', 'toolsBreakdown', 'toolsPeak');
+            if (showApparatus) renderCategoryChart('apparatus', categorized, 'apparatusCanvas', 'apparatusBreakdown', 'apparatusPeak');
         }
 
-        function renderCategoryChart(category, canvasId, breakdownId, peakId) {
-            const projects = categories[category];
+        function renderCategoryChart(category, categorized, canvasId, breakdownId, peakId) {
+            const projects = categorized[category];
             const dailyVisits = {};
             const projectVisits = {};
             let totalCategoryVisits = 0;
 
-            projects.forEach(projectName => {
-                projectVisits[projectName] = 0;
-                if (allData[projectName]) {
-                    Object.values(allData[projectName]).forEach(visit => {
-                        projectVisits[projectName]++;
+            Object.entries(projects).forEach(([projectKey, projectName]) => {
+                projectVisits[projectName] = { key: projectKey, count: 0 };
+                if (allData[projectKey]) {
+                    Object.values(allData[projectKey]).forEach(visit => {
+                        projectVisits[projectName].count++;
                         totalCategoryVisits++;
                         const visitDate = new Date(visit.timestamp).toDateString();
                         if (!dailyVisits[visitDate]) dailyVisits[visitDate] = 0;
@@ -594,10 +616,10 @@
             // Get timeline data
             const sortedDates = Object.keys(dailyVisits).sort((a, b) => new Date(a) - new Date(b));
             const timelineDates = sortedDates.slice(-currentTimeline);
-            const counts = timelineDates.map(day => dailyVisits[day]);
+            const counts = timelineDates.map(day => dailyVisits[day] || 0);
 
             // Find peak
-            const maxVisits = Math.max(...counts);
+            const maxVisits = Math.max(...counts, 0);
             const peakDate = timelineDates[counts.indexOf(maxVisits)];
             document.getElementById(peakId).textContent = peakDate ? `PEAK: ${new Date(peakDate).toLocaleDateString()} (${maxVisits})` : '';
 
@@ -613,7 +635,7 @@
                         return `${d.getMonth() + 1}/${d.getDate()}`;
                     }),
                     datasets: [{
-                        label: category.toUpperCase(),
+                        label: categoryNames[category].toUpperCase(),
                         data: counts,
                         borderColor: categoryColors[category],
                         backgroundColor: categoryColors[category] + '33',
@@ -661,30 +683,30 @@
             breakdown.innerHTML = '';
 
             Object.entries(projectVisits)
-                .sort((a, b) => b[1] - a[1])
-                .forEach(([name, visits]) => {
-                    const percent = totalCategoryVisits > 0 ? ((visits / totalCategoryVisits) * 100).toFixed(1) : 0;
+                .sort((a, b) => b[1].count - a[1].count)
+                .forEach(([name, data]) => {
+                    const percent = totalCategoryVisits > 0 ? ((data.count / totalCategoryVisits) * 100).toFixed(1) : 0;
                     const item = document.createElement('div');
                     item.className = 'project-item';
                     item.innerHTML = `
                         <span class="project-name">${name}</span>
                         <div class="project-stats">
-                            <div class="project-visits">${visits}</div>
+                            <div class="project-visits">${data.count}</div>
                             <div class="project-percent">${percent}%</div>
                         </div>
                     `;
-                    item.addEventListener('click', () => showProjectDetail(name));
+                    item.addEventListener('click', () => showProjectDetail(data.key, name, category));
                     breakdown.appendChild(item);
                 });
         }
 
-        function showProjectDetail(projectName) {
+        function showProjectDetail(projectKey, projectName, category) {
             document.getElementById('overviewView').classList.add('hidden');
             document.getElementById('detailView').classList.add('active');
             document.getElementById('detailProjectName').textContent = projectName;
             document.getElementById('detailChartTitle').textContent = projectName.toUpperCase();
 
-            if (!allData[projectName]) {
+            if (!allData[projectKey]) {
                 document.getElementById('detailTotal').textContent = 0;
                 document.getElementById('detailToday').textContent = 0;
                 document.getElementById('detailAvg').textContent = 0;
@@ -697,7 +719,7 @@
             let todayVisits = 0;
             const today = new Date().toDateString();
 
-            Object.values(allData[projectName]).forEach(visit => {
+            Object.values(allData[projectKey]).forEach(visit => {
                 totalVisits++;
                 const visitDate = new Date(visit.timestamp).toDateString();
                 if (visitDate === today) todayVisits++;
@@ -711,21 +733,14 @@
 
             const days = Object.keys(dailyVisits).length || 1;
             const avgDaily = Math.round(totalVisits / days);
-            const peakVisits = Math.max(...counts);
+            const peakVisits = Math.max(...counts, 0);
 
             document.getElementById('detailTotal').textContent = totalVisits;
             document.getElementById('detailToday').textContent = todayVisits;
             document.getElementById('detailAvg').textContent = avgDaily;
             document.getElementById('detailPeak').textContent = peakVisits;
 
-            // Find category for color
-            let projectColor = '#ffffff';
-            for (let [category, projects] of Object.entries(categories)) {
-                if (projects.includes(projectName)) {
-                    projectColor = categoryColors[category];
-                    break;
-                }
-            }
+            const projectColor = categoryColors[category];
 
             const ctx = document.getElementById('detailCanvas');
             if (chartInstances['detailCanvas']) chartInstances['detailCanvas'].destroy();
